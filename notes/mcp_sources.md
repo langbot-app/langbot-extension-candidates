@@ -43,3 +43,7 @@ These were considered but omitted from the final CSV because they did not meet t
 1. Before publishing any `candidate`, run a README/package-level verifier to confirm exact install command, transport type, environment variables, and whether tools can write externally.
 2. For every `needs_review` row, require manual security review and scoped demo credentials before enabling in LangBot Space.
 3. Add registry-specific fields later if the importer needs transport (`stdio`, `sse`, `streamable-http`) or package name separate from repository URL.
+
+## Final top-up pass (2026-05-06)
+
+After the first high-quality MCP pass produced 89 entries, the remaining 11 were added manually from GitHub search/manual review instead of padding from weak registries. The top-up prioritized maintained repositories with clear utility, visible license metadata, and popularity evidence. Sensitive integrations such as Gmail/Microsoft 365 were retained as `needs_review` due OAuth and private-data handling requirements.
