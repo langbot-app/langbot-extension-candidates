@@ -1,31 +1,45 @@
-# MCP candidate sources and methodology
+# MCP Candidate Sources and Methodology
 
 Last checked: 2026-05-06
 
-## Sources consulted
+## Methodology
 
-- LobeHub MCP marketplace: `https://lobehub.com/mcp`
-  - Used as a marketplace sanity-check source. The page is heavily client-rendered in the lightweight fetcher, so it was not used as the primary structured data source.
-- Official MCP Registry: `https://registry.modelcontextprotocol.io/v0/servers`
-  - Queried to confirm there is an active official registry and to compare registry metadata shape: server name, description, packages/remotes, repository, published/updated metadata.
-- Official MCP reference server README: `https://github.com/modelcontextprotocol/servers`
-  - Used to understand reference-server status and security cautions; reference examples are educational and should not be assumed production-ready.
-- GitHub repository search/topic metadata:
-  - `https://github.com/topics/mcp-server`
-  - Authenticated GitHub API searches for `topic:mcp-server`, `"MCP server"`, and `"Model Context Protocol server"`.
+- Read `QUALITY.md` first and treated quality as higher priority than reaching exactly 100 rows.
+- Used a blended source strategy:
+  - LobeHub MCP marketplace top listings for high-signal servers such as Playwright, Context7, Tavily, Firecrawl, AntV Chart, Figma Context, Browserbase, and Obsidian.
+  - mcpservers.org official/featured listings for vendor-backed servers such as GitHub, Cloudflare, Supabase, Exa, Apify, Aiven, AWS Labs, Azure, Grafana, MiniMax, and others.
+  - GitHub repository metadata via `gh api` for stable source URLs, author/org, license SPDX id, stars/forks/watchers, update date, primary language, and topics.
+  - Official/vendor repositories when a registry page was unavailable but the repo had strong provenance and clear MCP utility.
+- Wrote `data/processed/mcp_candidates.csv` with 89 rows. This intentionally stays below 100 rather than padding with low-provenance or novelty entries.
+- `review_status=candidate` means the source looked useful and sufficiently reputable for a first import pass.
+- `review_status=needs_review` means the candidate has clear utility/popularity but needs a stricter human/security review before publication, usually because of dual-use security capability, unclear license, social/private-data access, or high-power local automation.
+- For license values, GitHub SPDX metadata was used when available. `unknown` is retained when GitHub reports no recognized license; the corresponding row includes a risk note requiring manual license verification.
+- Runtime/install notes are intentionally concise importer hints based on language/package ecosystem and should be followed by README-level verification during implementation.
 
-## Selection approach
+## Accepted source families
 
-1. Collected repository metadata from GitHub search results across MCP-server topics and explicit MCP-server search phrases.
-2. Kept repositories whose name or description explicitly identifies them as an MCP server or service-specific MCP implementation.
-3. Excluded obvious non-market candidates such as awesome lists, SDKs/framework-only repos, client apps, tutorials, guides, registries/directories, boilerplates, and intentionally vulnerable demo servers.
-4. Sorted candidates by GitHub stars as a rough popularity signal, then kept 110 rows so the file exceeds the 100-row target.
-5. For each row, recorded the GitHub description, owner, repository URL, SPDX license metadata when available, stars/forks/watchers/update date, GitHub topics, primary language, and a best-effort install/runtime hint based on root repository files (`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, Docker files, etc.).
+- **Official/vendor cloud and DevOps:** GitHub, Cloudflare, AWS Labs, Azure, Aiven, Grafana, Supabase, Terraform, Kubernetes, Docker-adjacent/container tooling.
+- **Developer tooling:** Playwright, Chrome DevTools, JetBrains, XcodeBuildMCP, language-server MCPs, codebase memory/search, GitHub/Atlassian tooling.
+- **Data and databases:** Qdrant, MongoDB, Bytebase DBHub, MySQL, Neon, Doris, Timescale/Postgres guidance, Financial Datasets.
+- **Web/search/research:** Context7, Tavily, Exa, Firecrawl, Apify, Bright Data, Arxiv, paper search, NotebookLM, DuckDuckGo/open web search.
+- **Productivity/knowledge:** Notion, Google Workspace, Slack, Obsidian, Contentful, Home Assistant.
+- **Creative/media:** AntV charts, Figma Context, design extraction, shadcn UI, MiniMax, ElevenLabs, Excel, Unity/Unreal/Godot.
+- **Security/reverse engineering:** HexStrike, IDA, Ghidra, JADX, WinDbg were retained as `needs_review` due to obvious dual-use value and risk.
 
-## Review caveats
+## Rejected or intentionally omitted
 
-- This is a metadata-level market screening, not a source-code security audit.
-- `review_status=candidate` means the candidate looks plausible for marketplace review from public metadata. It does **not** mean approved for production.
-- `review_status=needs_review` is used when license metadata is missing/ambiguous or the summary is weak.
-- Before publishing any extension, manually inspect README install instructions, package provenance, license terms, maintenance activity, required secrets/OAuth scopes, network/file-system permissions, and whether the server is local or remote-hosted.
-- Some high-star projects are broad products with MCP-server support rather than narrow one-purpose servers; they are retained only when public metadata explicitly describes MCP-server functionality.
+These were considered but omitted from the final CSV because they did not meet the quality bar for this pass:
+
+- **Duplicate/lower-signal alternatives:** `executeautomation/mcp-playwright`, `leonardsellem/n8n-mcp-server`, duplicate Kubernetes/MySQL variants, RedNote duplicates of Xiaohongshu-style integrations.
+- **Boilerplates/templates/curricula rather than usable servers:** `iannuttall/mcp-boilerplate`, `microsoft/mcp-for-beginners`, generic SDK/framework-only repos where end-user utility was indirect.
+- **Awesome lists/directories only:** Awesome MCP lists, MCP getting-started guides, marketplace indexes without direct server functionality.
+- **Intentionally vulnerable or training targets:** `harishsg993010/damn-vulnerable-MCP-server` and similar security-lab projects; useful for education, not a marketplace integration.
+- **Unclear/novelty or weak provenance from metadata alone:** small or ambiguous repositories where the README would need deeper validation before inclusion.
+- **404/unverified repo candidates:** `docker/mcp-servers`, `Shopify/dev-mcp`, and `mcp-server-time/mcp-server-time` did not resolve through GitHub API during this pass, so they were omitted rather than guessed.
+- **Potentially high-risk social automations without enough review:** some WhatsApp/RedNote/Xiaohongshu-style variants were omitted or kept only as `needs_review` when popularity was high enough.
+
+## Follow-up recommendations
+
+1. Before publishing any `candidate`, run a README/package-level verifier to confirm exact install command, transport type, environment variables, and whether tools can write externally.
+2. For every `needs_review` row, require manual security review and scoped demo credentials before enabling in LangBot Space.
+3. Add registry-specific fields later if the importer needs transport (`stdio`, `sse`, `streamable-http`) or package name separate from repository URL.
